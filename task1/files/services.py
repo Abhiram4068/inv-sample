@@ -6,6 +6,10 @@ from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from typing import List
 from .models import File
 import hashlib
+from rest_framework.exceptions import NotFound, PermissionDenied
+from django.utils import timezone
+from django.core.files.storage import default_storage
+
 
 class UserAuthService:
     @staticmethod
@@ -96,3 +100,77 @@ class FileService:
             })
         return uploaded_files
 
+    @staticmethod
+    def read_files(user):
+        all_files=File.objects.filter(user=user, is_deleted=False)
+        return all_files
+    
+    @staticmethod
+    def read_file_details(user, pk):
+        try:
+            
+            file_details=File.objects.get(user=user, id=pk, is_deleted=False)
+        except File.DoesNotExist:
+            raise NotFound("File not found.")
+        return file_details
+    
+    @staticmethod
+    @transaction.atomic
+    def update_file(user, file_id, validated_data):
+        try:
+            file_instance = File.objects.get(
+                id=file_id,
+                user=user,
+                is_deleted=False
+            )
+        except File.DoesNotExist:
+            raise NotFound("File not found.")
+
+        new_file = validated_data.get("file")
+        description = validated_data.get("description")
+
+        if new_file:
+            checksum = FileService._calculate_checksum(new_file)
+
+            existing_file = File.objects.filter(
+                checksum=checksum,
+                is_deleted=False
+            ).first()
+
+
+            if file_instance.file:
+                default_storage.delete(file_instance.file.name)
+
+            if existing_file:
+                file_instance.file = existing_file.file
+            else:
+                file_instance.file = new_file
+
+            file_instance.original_name = new_file.name
+            file_instance.file_size = new_file.size
+            file_instance.content_type = new_file.content_type
+            file_instance.checksum = checksum
+
+        if description is not None:
+            file_instance.description = description
+
+        file_instance.updated_at = timezone.now()
+        file_instance.save()
+
+        return file_instance
+    
+    @staticmethod
+    def delete_file(user, file_id):
+        try:
+            file_instance=File.objects.get(user=user, id=file_id, is_deleted=False)
+        except File.DoesNotExist:
+            raise NotFound("File not found.")
+        checksum = file_instance.checksum
+        file_instance.is_deleted=True
+        file_instance.deleted_at=timezone.now()
+        file_instance.save(update_fields=['is_deleted', 'deleted_at'])
+
+        return {
+            "id": str(file_instance.id),
+            "message": "File deleted successfully"
+        }
