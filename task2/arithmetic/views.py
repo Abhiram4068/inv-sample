@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import RegisterSerializer, LoginSerializer, LogoutSerializer
-from .services import UserAuthService
+from .services import UserAuthService, ArithmeticService
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -69,3 +69,29 @@ class LogoutView(APIView):
             {'message':'Logout successful'},
             status=status.HTTP_205_RESET_CONTENT
         )
+        
+class AddView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request, num1, num2):
+        print(num1, num2)
+        result=ArithmeticService.add(num1, num2)
+        return Response({'Result':result}, status=status.HTTP_200_OK)
+class SubtractView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request, num1, num2):
+        result=ArithmeticService.subtract(num1, num2)
+        return Response({'Result':result}, status=status.HTTP_200_OK)
+class MultiplyView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request, num1, num2):
+        result=ArithmeticService.multiply(num1, num2)
+        return Response({'Result':result}, status=status.HTTP_200_OK)
+class DivideView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request,num1, num2):
+        result=ArithmeticService.divide(num1, num2)
+        return Response({'Result':result}, status=status.HTTP_200_OK)

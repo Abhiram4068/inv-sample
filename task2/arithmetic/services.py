@@ -43,3 +43,22 @@ class UserAuthService:
         except Exception:
             raise AuthenticationFailed("Invalid or expired refresh token")
         return True
+    
+class ArithmeticService:
+    @staticmethod
+    def add(num1, num2):
+        return num1+num2
+    
+    @staticmethod
+    def subtract(num1, num2):
+        return num1-num2
+    
+    @staticmethod
+    def multiply(num1, num2):
+        return num1*num2
+    
+    @staticmethod
+    def divide(num1, num2):
+        if num2 == 0:
+            raise ValueError("Division by zero is not defined!")
+        return num1 / num2 
