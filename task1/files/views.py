@@ -167,3 +167,9 @@ class FileDeleteView(APIView):
             {"detail": "File deleted successfully"},
             status=status.HTTP_204_NO_CONTENT
         )
+    
+
+class FileDownloadView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self, request, pk):
+        return FileService.download_file(request.user, pk)
