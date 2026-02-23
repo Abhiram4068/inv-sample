@@ -185,3 +185,11 @@ class FileService:
             as_attachment=False,
             filename=file_obj.original_name
         )
+class FileStorageService:
+    @classmethod
+    def get_valid_file(cls, file_id, user):
+        return get_object_or_404(
+            File, 
+            id=file_id, 
+            user=user
+        )
