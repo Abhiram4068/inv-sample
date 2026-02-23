@@ -6,6 +6,7 @@ from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from typing import List
 from .models import File
 import hashlib
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 class UserAuthService:
     @staticmethod
@@ -96,3 +97,16 @@ class FileService:
             })
         return uploaded_files
 
+    @staticmethod
+    def read_files(user):
+        all_files=File.objects.filter(user=user, is_deleted=False)
+        return all_files
+    
+    @staticmethod
+    def read_file_details(user, pk):
+        try:
+            
+            file_details=File.objects.get(user=user, id=pk, is_deleted=False)
+        except File.DoesNotExist:
+            raise NotFound("File not found.")
+        return file_details

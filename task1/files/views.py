@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .services import UserAuthService, FileService
-from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer, FileCreateSerializer
+from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer, FileCreateSerializer, FileReadSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 
@@ -98,4 +98,29 @@ class FileCreateView(APIView):
             return Response(
                 {'error':str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )       
+         
+class FileReadView(APIView):
+    permission_class=[IsAuthenticated]
+    def get(self, request):
+        all_files=FileService.read_files(request.user)
+        if not all_files.exists():
+            return Response(
+                {'message':'You haven"t uploaded any files yet.'},
+                status=status.HTTP_200_OK
             )
+        serializer=FileReadSerializer(all_files, many=True)
+        return Response(serializer.data)
+    
+class FileDetailReadView(APIView):
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request, pk):
+        file_details=FileService.read_file_details(request.user, pk)
+        if not file_details:
+            return Response(
+                {'message':'File not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer=FileReadSerializer(file_details)
+        return Response(serializer.data)

@@ -70,3 +70,18 @@ class FileCreateSerializer(serializers.Serializer):
                     f"File '{file.name}' exceeds maximum size of 10MB."
                 )
         return data
+
+
+class FileReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=File
+        fields=[
+            'user',
+            'id',
+            'file',
+            'original_name',
+            'file_size',
+            'content_type',
+            'created_at'
+        ]
+    

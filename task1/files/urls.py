@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from files.views import RegisterView, LoginView, LogoutView, FileCreateView
+from files.views import RegisterView, LoginView, LogoutView, FileCreateView, FileReadView, FileDetailReadView
 
 app_name='files'
 
@@ -12,4 +12,6 @@ urlpatterns=[
     path('auth/logout/', LogoutView.as_view(), name="user-logout"),
 
     path('files/create/', FileCreateView.as_view(), name='file-create'),
+    path('files/read/', FileReadView.as_view(), name='file-read'),
+    path('files/<uuid:pk>/read/', FileDetailReadView.as_view(), name='file-detail')
 ]
