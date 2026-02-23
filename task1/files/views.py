@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from .services import UserAuthService
-from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer
+from .services import UserAuthService, FileService
+from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer, FileCreateSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 
@@ -70,3 +70,32 @@ class LogoutView(APIView):
         )
         
             
+class FileCreateView(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def post(self, request):
+        serializer=FileCreateSerializer(
+            data=request.data,
+            context={'request':request}
+            )
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        files=serializer.validated_data['files']
+        description = serializer.validated_data.get("description")
+        try:
+            uploaded_files=FileService.create_files(user=request.user, files=files, description=description) 
+            return Response(
+                {
+                    'message':f'{len(uploaded_files)} files uploaded successfully',
+                    'files':uploaded_files
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {'error':str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

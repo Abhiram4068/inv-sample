@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from files.views import RegisterView, LoginView, LogoutView
+from files.views import RegisterView, LoginView, LogoutView, FileCreateView
 
 app_name='files'
 
@@ -10,4 +10,6 @@ urlpatterns=[
     path('auth/login/', LoginView.as_view(), name='user-login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name="token_refresh"),
     path('auth/logout/', LogoutView.as_view(), name="user-logout"),
+
+    path('files/create/', FileCreateView.as_view(), name='file-create'),
 ]
