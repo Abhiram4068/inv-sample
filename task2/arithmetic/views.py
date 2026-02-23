@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer=RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -35,7 +36,7 @@ class LoginView(APIView):
         
         try:
             result=UserAuthService.user_login(
-                email=serializer._validated_data['email'],
+                email=serializer.validated_data['email'],
                 password=serializer.validated_data['password']
             )
         except ValueError as e:
@@ -90,8 +91,14 @@ class MultiplyView(APIView):
         result=ArithmeticService.multiply(num1, num2)
         return Response({'Result':result}, status=status.HTTP_200_OK)
 class DivideView(APIView):
-    permission_classes=[IsAuthenticated]
-    
-    def get(self, request,num1, num2):
-        result=ArithmeticService.divide(num1, num2)
-        return Response({'Result':result}, status=status.HTTP_200_OK)
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, num1, num2):
+        try:
+            result = ArithmeticService.divide(num1, num2)
+            return Response({'Result': result}, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
