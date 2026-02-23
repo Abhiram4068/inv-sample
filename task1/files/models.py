@@ -24,6 +24,7 @@ class File(models.Model):
     )
     file = models.FileField(upload_to=user_directory_path)
     original_name = models.CharField(max_length=255)
+    display_name = models.CharField(max_length=255)
     file_size = models.BigIntegerField()
     content_type = models.CharField(max_length=100)
     checksum = models.CharField(max_length=64, blank=True, null=True)

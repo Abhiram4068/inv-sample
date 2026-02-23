@@ -84,4 +84,26 @@ class FileReadSerializer(serializers.ModelSerializer):
             'content_type',
             'created_at'
         ]
-    
+
+
+class FileUpdateSerializer(serializers.Serializer):
+    file = serializers.FileField(
+        required=False,
+        allow_empty_file=False
+    )
+    description = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True
+    )
+
+    def validate(self, data):
+        max_file_size = 10 * 1024 * 1024
+
+        file = data.get("file")
+        if file and file.size > max_file_size:
+            raise serializers.ValidationError(
+                f"File '{file.name}' exceeds maximum size of 10MB."
+            )
+
+        return data

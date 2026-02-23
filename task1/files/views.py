@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .services import UserAuthService, FileService
-from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer, FileCreateSerializer, FileReadSerializer
+from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer, FileCreateSerializer, FileReadSerializer, FileUpdateSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 
@@ -124,3 +124,46 @@ class FileDetailReadView(APIView):
             )
         serializer=FileReadSerializer(file_details)
         return Response(serializer.data)
+    
+
+class FileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        serializer = FileUpdateSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        updated_file = FileService.update_file(
+            user=request.user,
+            file_id=pk,
+            validated_data=serializer.validated_data
+        )
+
+        return Response(
+            {
+                "id": str(updated_file.id),
+                "name": updated_file.original_name,
+                "size": updated_file.file_size,
+                "content_type": updated_file.content_type,
+                "checksum": updated_file.checksum,
+                "description": updated_file.description,
+                "updated_at": updated_file.updated_at,
+            },
+            status=status.HTTP_200_OK
+        )
+    
+class FileDeleteView(APIView):
+    """
+    View for handling deleting
+    """
+    permission_classes=[IsAuthenticated]
+
+    def delete(self, request, pk):
+        FileService.delete_file(
+            request.user,
+            pk
+        )
+        return Response(
+            {"detail": "File deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT
+        )
