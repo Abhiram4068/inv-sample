@@ -6,6 +6,10 @@ from .services import UserAuthService, FileService
 from .serializers import RegisterSerialzier, LoginSerializer, LogoutSerializer, FileCreateSerializer, FileReadSerializer, FileUpdateSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
+from .services import  FileStorageService
+from django.urls import reverse
+from django.http import FileResponse
+
 
 class RegisterView(APIView):
     authentication_classes=[]
@@ -168,8 +172,24 @@ class FileDeleteView(APIView):
             status=status.HTTP_204_NO_CONTENT
         )
     
+class FileLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, pk):
+        file_obj = FileStorageService.get_valid_file(pk, request.user)
+        download_path = reverse('files:file-download', kwargs={'pk': file_obj.pk})
+        full_url = request.build_absolute_uri(download_path)
+
+        return Response({
+            "download_url": full_url,
+            "filename": file_obj.original_name
+        })
 
 class FileDownloadView(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
-        return FileService.download_file(request.user, pk)
+        file_instance = FileStorageService.get_valid_file(pk, request.user)
+        file_handle = file_instance.file.open('rb')
+        response = FileResponse(file_handle, content_type=file_instance.content_type)
+        response['Content-Disposition'] = f'attachment; filename="{file_instance.original_name}"'
+        return response
