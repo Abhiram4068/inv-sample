@@ -9,7 +9,8 @@ import hashlib
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils import timezone
 from django.core.files.storage import default_storage
-
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 
 class UserAuthService:
     @staticmethod
@@ -174,3 +175,13 @@ class FileService:
             "id": str(file_instance.id),
             "message": "File deleted successfully"
         }
+    
+    @staticmethod
+    def download_file(user, file_id):
+        file_obj=get_object_or_404(File, id=file_id, user=user)
+
+        return FileResponse(
+            file_obj.file.open('rb'),
+            as_attachment=False,
+            filename=file_obj.original_name
+        )
